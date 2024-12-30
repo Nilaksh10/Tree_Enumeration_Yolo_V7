@@ -1,20 +1,29 @@
-Tree Enumeration and Health Analysis System
+# Tree Enumeration and Health Analysis System  
+
 This project provides an advanced solution for analyzing satellite or drone images to count trees, detect their locations, and assess their health based on the color of the tree crown. Leveraging the YOLOv7 model for object detection, it offers precise and efficient tree analysis.
 
-Features
-Upload Images: Accepts satellite or drone images in various formats (e.g., JPG, PNG).
-Tree Detection: Identifies and counts trees in the uploaded image.
-Bounding Boxes: Draws bounding boxes around detected trees.
-Tree Health Analysis: Evaluates tree health based on the crown color and categorizes it.
-User-Friendly Interface: Simple and interactive frontend for uploading images and viewing results.
-Tech Stack
-Backend: YOLOv7, Flask
-Frontend: HTML, CSS, JavaScript (React.js integration optional)
-Libraries: OpenCV, NumPy, PyTorch
-Installation and Setup
-1. Clone the Repository
-bash
-Copy code
+---
+
+## Features  
+- **Upload Images:** Accepts satellite or drone images in various formats (e.g., JPG, PNG).  
+- **Tree Detection:** Identifies and counts trees in the uploaded image.  
+- **Bounding Boxes:** Draws bounding boxes around detected trees.  
+- **Tree Health Analysis:** Evaluates tree health based on the crown color and categorizes it.  
+- **User-Friendly Interface:** Simple and interactive frontend for uploading images and viewing results.  
+
+---
+
+## Tech Stack  
+- **Backend:** YOLOv7, Flask  
+- **Frontend:** HTML, CSS, JavaScript (React.js integration optional)  
+- **Libraries:** OpenCV, NumPy, PyTorch  
+
+---
+
+## Installation and Setup  
+
+### 1. Clone the Repository  
+```bash  
 git clone https://github.com/your-username/Tree_Enumeration_YoloV7.git  
 cd Tree_Enumeration_YoloV7  
 2. Set Up the Environment
@@ -56,3 +65,8 @@ Support real-time image analysis through video feeds.
 Integrate map-based visualization for geolocation of trees.
 Contributing
 Feel free to open issues or create pull requests for improvements!
+
+
+
+https://github.com/user-attachments/assets/bc86226e-403c-4954-b143-319ec5f2e1a7
+
