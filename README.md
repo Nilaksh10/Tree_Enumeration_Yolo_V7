@@ -22,24 +22,24 @@ This project provides an advanced solution for analyzing satellite or drone imag
 
 ## Installation and Setup  
 
-### 1. Clone the Repository  
-```bash  
+### 1. Clone the Repository
+bash  
 git clone https://github.com/your-username/Tree_Enumeration_YoloV7.git  
-cd Tree_Enumeration_YoloV7  
-2. Set Up the Environment
+cd Tree_Enumeration_YoloV7
+###2. Set Up the Environment
 Install Python (>= 3.8) and pip.
 Create and activate a virtual environment:
 bash
 Copy code
 python -m venv env  
 source env/bin/activate  # On Windows: env\Scripts\activate  
-3. Install Dependencies
+###3. Install Dependencies
 bash
 Copy code
 pip install -r requirements.txt  
-4. Download YOLOv7 Weights
+###4. Download YOLOv7 Weights
 Place the best.pt YOLOv7 weights file in the models/ directory.
-5. Run the Application
+###5. Run the Application
 bash
 Copy code
 python app.py  
@@ -65,7 +65,6 @@ Support real-time image analysis through video feeds.
 Integrate map-based visualization for geolocation of trees.
 Contributing
 Feel free to open issues or create pull requests for improvements!
-
 
 
 https://github.com/user-attachments/assets/bc86226e-403c-4954-b143-319ec5f2e1a7
