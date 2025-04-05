@@ -2,55 +2,279 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <link rel="stylesheet" href="//stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
-    integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
-  <style>
-    .bd-placeholder-img {
-      font-size: 1.125rem;
-      text-anchor: middle;
-    }
-
-    @media (min-width: 768px) {
-      .bd-placeholder-img-lg {
-        font-size: 3.5rem;
-      }
-    }
-  </style>
-  <link rel="stylesheet" href="/static/style.css">
-
-  <title>Image Prediction using PyTorch</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>CanopyScan | Analysis Results</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #30a46c;
+            --primary-light: #40c57a;
+            --dark: #121913;
+            --light: #fbfefc;
+        }
+        
+        body {
+            background-color: var(--dark);
+            color: var(--light);
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        .result-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        .result-image-container {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .result-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+        
+        .result-image:hover {
+            transform: scale(1.03);
+        }
+        
+        .health-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .health-card {
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .health-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .health-card.healthy {
+            background: rgba(48, 164, 108, 0.1);
+            border: 1px solid var(--primary);
+        }
+        
+        .health-card.moderate {
+            background: rgba(255, 213, 0, 0.1);
+            border: 1px solid #ffd500;
+        }
+        
+        .health-card.unhealthy {
+            background: rgba(255, 51, 51, 0.1);
+            border: 1px solid #ff3333;
+        }
+        
+        .health-card.uncertain {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #ffffff;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+            margin: 0.5rem 0;
+        }
+        
+        .btn-back {
+            background: linear-gradient(to right, var(--primary), var(--primary-light));
+            border: none;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 500;
+            margin-top: 2rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(48, 164, 108, 0.4);
+            color: white;
+        }
+        
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .health-stats {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .health-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            body {
+                padding: 1rem;
+            }
+            
+            .result-container {
+                padding: 1.5rem;
+            }
+        }
+    </style>
 </head>
 
-<body class="text-center">
-  <form class="form-signin card_res mb-6" method=post enctype=multipart/form-data>
-    <img class="mb-4" src="https://www.shutterstock.com/shutterstock/photos/2237114413/display_1500/stock-photo-view-up-to-the-treetops-in-a-forest-near-port-renfrew-british-columbia-canada-2237114413.jpg" width="120" style="border-radius:50%">
-    <h1 class="h3 mb-3 font-weight-normal">Prediction of trees:{{ num_trees }}</h1>
-    <img class="img-fluid" src={{ url_for('static', filename=result_image ) }} alt="User_Image" max-width="100%"
-      height="auto">
+<body>
+    <div class="container">
+        <div class="result-container">
+            <h1 class="mb-4 text-center">Canopy Analysis Results</h1>
+            
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <div class="result-image-container">
+                        <img id="result-image" class="result-image" alt="Analysis Result">
+                        <div id="image-loading" class="loading-spinner">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading analysis image...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6">
+                    <h3 class="mb-3">Detection Summary</h3>
+                    <div class="mb-4">
+                        <p><strong>Total Trees Detected:</strong> <span id="tree-count" class="badge bg-primary">0</span></p>
+                        <p><strong>Canopy Coverage:</strong> <span id="coverage-percent" class="badge bg-primary">0</span>% of image area</p>
+                    </div>
+                    
+                    <h3 class="mb-3">Health Distribution</h3>
+                    <div class="health-stats">
+                        <div class="health-card healthy">
+                            <i class="fas fa-leaf fa-2x mb-2" style="color: var(--primary);"></i>
+                            <h4>Healthy</h4>
+                            <div class="stat-value" id="healthy-count">0</div>
+                            <p class="mb-0">Trees</p>
+                        </div>
+                        
+                        <div class="health-card moderate">
+                            <i class="fas fa-leaf fa-2x mb-2" style="color: #ffd500;"></i>
+                            <h4>Moderate</h4>
+                            <div class="stat-value" id="moderate-count">0</div>
+                            <p class="mb-0">Trees</p>
+                        </div>
+                        
+                        <div class="health-card unhealthy">
+                            <i class="fas fa-leaf fa-2x mb-2" style="color: #ff3333;"></i>
+                            <h4>Unhealthy</h4>
+                            <div class="stat-value" id="unhealthy-count">0</div>
+                            <p class="mb-0">Trees</p>
+                        </div>
+                        
+                        <div class="health-card uncertain">
+                            <i class="fas fa-question-circle fa-2x mb-2"></i>
+                            <h4>Uncertain</h4>
+                            <div class="stat-value" id="uncertain-count">0</div>
+                            <p class="mb-0">Trees</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    <button class="btn mb-4"> Test Another Image </button>
-  
-  </form>
+        <div class="text-center">
+            <button class="btn-back" onclick="window.location.href='/'">
+                <i class="fas fa-arrow-left me-2"></i> Analyze Another Image
+            </button>
+        </div>
+    </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show loading state immediately
+            document.getElementById('image-loading').style.display = 'block';
+            
+            // Try to get results from session storage
+            const results = JSON.parse(sessionStorage.getItem('analysisResults'));
+            
+            if (!results) {
+                showError('No analysis results found. Please upload an image first.');
+                return;
+            }
 
-  <script src="//code.jquery.com/jquery-3.3.1.slim.min.js"
-    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
-    crossorigin="anonymous"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"
-    integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut"
-    crossorigin="anonymous"></script>
-  <script src="//stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"
-    integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k"
-    crossorigin="anonymous"></script>
-  <script src="/static/script.js"></script>
+            // Update the DOM with results
+            updateResults(results);
+            
+            // Load the result image with cache busting
+            loadResultImage(results.result_image);
+        });
 
-  <div class="alert alert-warning" role="alert">
-    The image is saved in static/image0.jpg. 
-  </div>
-  
+        function updateResults(results) {
+            document.getElementById('tree-count').textContent = results.num_trees;
+            document.getElementById('coverage-percent').textContent = results.tree_area_percentage;
+            
+            // Update health stats
+            document.getElementById('healthy-count').textContent = results.health_stats.Healthy;
+            document.getElementById('moderate-count').textContent = results.health_stats.Moderate;
+            document.getElementById('unhealthy-count').textContent = results.health_stats.Unhealthy;
+            document.getElementById('uncertain-count').textContent = results.health_stats.Uncertain;
+        }
+
+        function loadResultImage(imageName) {
+            const imgElement = document.getElementById('result-image');
+            const loadingElement = document.getElementById('image-loading');
+            
+            // Add cache buster to ensure fresh image load
+            imgElement.src = `/static/${imageName}?t=${Date.now()}`;
+            
+            imgElement.onload = function() {
+                loadingElement.style.display = 'none';
+                imgElement.style.display = 'block';
+            };
+            
+            imgElement.onerror = function() {
+                loadingElement.style.display = 'none';
+                showError('Failed to load result image. Please try again.');
+                imgElement.src = '/static/placeholder.jpg'; // Fallback image
+            };
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'alert alert-danger mt-3';
+            errorDiv.textContent = message;
+            
+            const container = document.querySelector('.result-container');
+            container.prepend(errorDiv);
+            
+            // Redirect back after 3 seconds
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 3000);
+        }
+    </script>
 </body>
-
 
 </html>
