@@ -1,69 +1,1048 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <link rel="stylesheet" href="//stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
-    integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
-  <style>
-    .bd-placeholder-img {
-      font-size: 1.125rem;
-      text-anchor: middle;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CanopyScan | Tree Health Analysis</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=SF+Pro+Text:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #30a46c;
+            --primary-light: #40c57a;
+            --dark: #121913;
+            --darker: #0a0f0b;
+            --light: #fbfefc;
+            --transition: all 0.4s cubic-bezier(0.2, 0.8, 0.4, 1);
+        }
+        
+        body {
+            font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: var(--light);
+            line-height: 1.5;
+            background-color: var(--dark);
+            overflow-x: hidden;
+        }
 
-    @media (min-width: 768px) {
-      .bd-placeholder-img-lg {
-        font-size: 3.5rem;
-      }
-    }
-  </style>
-  <link rel="stylesheet" href="/static/style.css">
+        /* Apple-style typography */
+        h1, h2, h3, h4 {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
 
-  <title>Flask App using Yolov7 models</title>
+        /* Smooth scroll behavior */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Header */
+        header {
+            background: rgba(18, 25, 19, 0.8);
+            backdrop-filter: blur(20px);
+            position: fixed;
+            width: 100%;
+            z-index: 1000;
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+            transform: translateY(0);
+            transition: var(--transition);
+        }
+
+        header.hidden {
+            transform: translateY(-100%);
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            font-size: 1.4rem;
+            color: var(--light);
+            transition: var(--transition);
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+            margin: 0 0.5rem;
+            transition: var(--transition);
+            font-size: 0.95rem;
+        }
+
+        .nav-link:hover {
+            color: white;
+        }
+
+        .nav-link.active {
+            color: var(--primary-light);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(18, 25, 19, 0.9), rgba(18, 25, 19, 0.95)), 
+                        url('https://images.unsplash.com/photo-1448375240586-882707db888b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80') no-repeat center center/cover;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 6rem 0 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(transparent, var(--dark));
+            z-index: 1;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 1s cubic-bezier(0.2, 0.8, 0.4, 1) 0.3s forwards;
+        }
+
+        .hero h1 {
+            font-size: 3.2rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #a8e063, var(--primary-light));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            opacity: 0.85;
+            margin-bottom: 2.5rem;
+            font-weight: 300;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Analysis Tool */
+        .container-box {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            padding: 2.5rem;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2);
+            transition: var(--transition);
+            transform: translateY(20px);
+            opacity: 0;
+            animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.4, 1) 0.6s forwards;
+        }
+
+        .container-box:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 16px 56px rgba(0, 0, 0, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .file-upload-container {
+            position: relative;
+            margin-bottom: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .custom-file-upload {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 1.2rem 2rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1.5px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 18px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .custom-file-upload:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        #previewImage {
+            margin-top: 1.5rem;
+            max-width: 100%;
+            border-radius: 18px;
+            display: none;
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            transform: scale(0.98);
+            transition: var(--transition);
+        }
+
+        #previewImage.loaded {
+            transform: scale(1);
+            animation: subtlePulse 6s ease-in-out infinite;
+        }
+
+        .upload-btn {
+            background: linear-gradient(to right, var(--primary), var(--primary-light));
+            border: none;
+            padding: 1.1rem;
+            color: white;
+            border-radius: 14px;
+            margin-top: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            font-size: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-btn:hover {
+            background: linear-gradient(to right, #2a9460, #38b570);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(48, 164, 108, 0.4);
+        }
+
+        .upload-btn:active {
+            transform: translateY(0);
+        }
+
+        .upload-btn:disabled {
+            background: #333;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .upload-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0) 45%,
+                rgba(255, 255, 255, 0.2) 48%,
+                rgba(255, 255, 255, 0.3) 50%,
+                rgba(255, 255, 255, 0.2) 52%,
+                rgba(255, 255, 255, 0) 55%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: rotate(30deg);
+            transition: var(--transition);
+            opacity: 0;
+        }
+
+        .upload-btn:hover::after {
+            animation: shine 2s infinite;
+        }
+
+        /* Features */
+        .features {
+            padding: 6rem 0;
+            background: var(--darker);
+        }
+
+        .section-title {
+            font-weight: 700;
+            font-size: 2.8rem;
+            margin-bottom: 4rem;
+            text-align: center;
+            color: var(--light);
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.4, 1) 0.2s forwards;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            padding: 2.5rem;
+            transition: var(--transition);
+            border: 0.5px solid rgba(255, 255, 255, 0.05);
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .feature-card:nth-child(1) { animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.4, 1) 0.4s forwards; }
+        .feature-card:nth-child(2) { animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.4, 1) 0.5s forwards; }
+        .feature-card:nth-child(3) { animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.4, 1) 0.6s forwards; }
+
+        .feature-card:hover {
+            transform: translateY(-10px) !important;
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .feature-icon {
+            font-size: 2.2rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary-light);
+            background: rgba(48, 164, 108, 0.1);
+            width: 60px;
+            height: 60px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feature-card h3 {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .feature-card p {
+            opacity: 0.8;
+            font-weight: 300;
+            font-size: 0.95rem;
+        }
+
+        /* Testimonials */
+        .testimonials {
+            padding: 6rem 0;
+            background: linear-gradient(rgba(18, 25, 19, 0.9), rgba(18, 25, 19, 0.95)), 
+                        url('https://images.unsplash.com/photo-1468276311594-df7cb65d8df6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80') no-repeat center center/cover;
+        }
+
+        .testimonial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .testimonial-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: var(--transition);
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .testimonial-card:nth-child(1) { animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.4, 1) 0.3s forwards; }
+        .testimonial-card:nth-child(2) { animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.4, 1) 0.4s forwards; }
+        .testimonial-card:nth-child(3) { animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.4, 1) 0.5s forwards; }
+
+        .testimonial-card:hover {
+            transform: translateY(-5px) !important;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .testimonial-text {
+            font-style: italic;
+            margin-bottom: 1.5rem;
+            position: relative;
+            font-weight: 300;
+            font-size: 1rem;
+        }
+
+        .testimonial-text::before {
+            content: '"';
+            font-size: 4rem;
+            position: absolute;
+            left: -1.5rem;
+            top: -1.5rem;
+            opacity: 0.2;
+            font-family: 'SF Pro Display', sans-serif;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+        }
+
+        .author-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 1rem;
+            border: 2px solid var(--primary-light);
+        }
+
+        .author-info h4 {
+            margin-bottom: 0.2rem;
+            font-weight: 600;
+        }
+
+        .author-info p {
+            opacity: 0.7;
+            font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+
+        /* FAQ */
+        .faq {
+            padding: 6rem 0;
+            background: var(--darker);
+        }
+
+        .accordion-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 1rem;
+            border-radius: 12px !important;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .accordion-item:nth-child(1) { animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.4, 1) 0.3s forwards; }
+        .accordion-item:nth-child(2) { animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.4, 1) 0.4s forwards; }
+        .accordion-item:nth-child(3) { animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.4, 1) 0.5s forwards; }
+        .accordion-item:nth-child(4) { animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.4, 1) 0.6s forwards; }
+        .accordion-item:nth-child(5) { animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.4, 1) 0.7s forwards; }
+
+        .accordion-button {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-weight: 500;
+            font-size: 1rem;
+        }
+
+        .accordion-button:not(.collapsed) {
+            background: rgba(48, 164, 108, 0.1);
+            color: var(--primary-light);
+            box-shadow: none;
+        }
+
+        .accordion-button:focus {
+            box-shadow: none;
+            border-color: rgba(48, 164, 108, 0.3);
+        }
+
+        .accordion-body {
+            background: rgba(255, 255, 255, 0.02);
+            font-weight: 300;
+            font-size: 0.95rem;
+        }
+
+        /* Contact */
+        .contact {
+            padding: 6rem 0;
+            background: linear-gradient(rgba(18, 25, 19, 0.9), rgba(18, 25, 19, 0.95)), 
+                        url('https://images.unsplash.com/photo-1476231682828-37e571bc172f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80') no-repeat center center/cover;
+        }
+
+        .contact-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 800px;
+            margin: 0 auto;
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.4, 1) 0.4s forwards;
+        }
+
+        .contact-card h3 {
+            margin-bottom: 2rem;
+            color: var(--primary-light);
+        }
+
+        .form-control {
+            background: rgba(255, 255, 255, 0.05);
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 12px;
+            padding: 0.8rem 1rem;
+            margin-bottom: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 0.25rem rgba(48, 164, 108, 0.1);
+            color: white;
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .submit-btn {
+            background: linear-gradient(to right, var(--primary), var(--primary-light));
+            border: none;
+            padding: 1rem 2rem;
+            color: white;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: var(--transition);
+            width: 100%;
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(to right, #2a9460, #38b570);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(48, 164, 108, 0.4);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark);
+            padding: 4rem 0 2rem;
+            border-top: 0.5px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .footer-logo {
+            font-weight: 600;
+            font-size: 1.6rem;
+            margin-bottom: 2rem;
+            display: inline-block;
+            color: var(--light);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: var(--transition);
+            font-size: 0.9rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-light);
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .social-links a {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+            transition: var(--transition);
+        }
+
+        .social-links a:hover {
+            color: var(--primary-light);
+            transform: translateY(-3px);
+        }
+
+        .copyright {
+            opacity: 0.5;
+            font-size: 0.8rem;
+            margin-top: 2rem;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes subtlePulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            }
+            50% {
+                transform: scale(0.99);
+                box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+            }
+        }
+
+        @keyframes shine {
+            from {
+                left: -50%;
+                opacity: 0;
+            }
+            20% {
+                opacity: 1;
+            }
+            to {
+                left: 150%;
+                opacity: 0;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .hero h1 {
+                font-size: 2.8rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                padding: 5rem 0 3rem;
+            }
+            
+            .hero h1 {
+                font-size: 2.4rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+            
+            .section-title {
+                font-size: 2.2rem;
+            }
+            
+            .container-box {
+                padding: 2rem;
+                border-radius: 20px;
+            }
+            
+            .contact-card {
+                padding: 2rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .container-box {
+                padding: 1.5rem;
+                border-radius: 18px;
+            }
+            
+            .feature-grid,
+            .testimonial-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-links {
+                gap: 1rem;
+            }
+        }
+    </style>
 </head>
 
-<body class="text-center">
-  
-  <form class="form-signin card mb-6" method=post enctype=multipart/form-data>
-    <img class="mb-4" src="" alt="" width="120"
-      style="border-radius:50%">
-    <h1 class="h3 mb-3 font-weight-normal">Upload Any Images</h1>
-    <input type="file" name="file" class="form-control-file" id="inputfile">
-    <br />
-    <button>
-      <span class="box">
-        Upload!
-      </span>
-    </button>
-    <p class="mt-5 mb-3 text-muted">Built using Pytorh and Flask.</p>
-  </form>
-  <script src="//code.jquery.com/jquery-3.3.1.slim.min.js"
-    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
-    crossorigin="anonymous"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"
-    integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut"
-    crossorigin="anonymous"></script>
-  <script src="//stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"
-    integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k"
-    crossorigin="anonymous"></script>
-  <script type="text/javascript">
-    $('#inputfile').bind('change', function () {
-      let fileSize = this.files[0].size / 1024 / 1024; // this gives in MB
-      if (fileSize > 1) {
-        $("#inputfile").val(null);
-        alert('file is too big. images more than 1MB are not allowed')
-        return
-      }
+<body>
+    <!-- Header -->
+    <header id="mainHeader">
+        <nav class="navbar navbar-expand-lg py-3">
+            <div class="container">
+                <a class="navbar-brand" href="#">CanopyScan</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#" >Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#features">Features</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#testimonials">Testimonials</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#faq">FAQ</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#contact">Contact</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
 
-      let ext = $('#inputfile').val().split('.').pop().toLowerCase();
-      if ($.inArray(ext, ['jpg', 'jpeg']) == -1) {
-        $("#inputfile").val(null);
-        alert('only jpeg/jpg files are allowed!');
-      }
-  
-  </script>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Precision Tree Health Analysis</h1>
+                <p>AI-powered insights for sustainable forest management and environmental conservation.</p>
+                
+                <div class="container-box">
+                    <div class="file-upload-container">
+                        <label class="custom-file-upload">
+                            <input type="file" id="fileInput" accept="image/*">
+                            <i class="fas fa-cloud-upload-alt"></i> Upload Image
+                        </label>
+                    </div>
+
+                    <img id="previewImage" class="img-fluid" alt="Image preview">
+
+                    <button class="upload-btn" id="analyzeBtn" disabled>
+                        <span id="btnText">Analyze Canopy</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <h2 class="section-title">Advanced Forest Analytics</h2>
+        
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-leaf"></i>
+                </div>
+                <h3>NDVI Analysis</h3>
+                <p>Advanced vegetation index calculations to assess plant health and biomass with scientific precision.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-bug"></i>
+                </div>
+                <h3>Disease Detection</h3>
+                <p>Early identification of pathogens and infestations before visible symptoms appear.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3>Growth Tracking</h3>
+                <p>Monitor canopy development over time with our temporal analysis tools.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials" id="testimonials">
+        <h2 class="section-title">Trusted by Experts</h2>
+        
+        <div class="testimonial-grid">
+            <div class="testimonial-card">
+                <div class="testimonial-text">
+                    CanopyScan revolutionized our forest management. Disease outbreaks reduced by 40% in the first year using their early detection system.
+                </div>
+                <div class="testimonial-author">
+                    <img src="https://randomuser.me/api/portraits/women/45.jpg" alt="Dr. Sarah Chen" class="author-avatar">
+                    <div class="author-info">
+                        <h4>Dr. Sarah Chen</h4>
+                        <p>Head Forester, Green Valley</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="testimonial-card">
+                <div class="testimonial-text">
+                    The accuracy of their health scoring is unmatched. We prioritize interventions effectively, saving time and resources.
+                </div>
+                <div class="testimonial-author">
+                    <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Michael Rodriguez" class="author-avatar">
+                    <div class="author-info">
+                        <h4>Michael Rodriguez</h4>
+                        <p>Director, National Parks</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="testimonial-card">
+                <div class="testimonial-text">
+                    As researchers, we appreciate the scientific rigor behind their analytics. The API integration is invaluable for our work.
+                </div>
+                <div class="testimonial-author">
+                    <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Prof. Elena Petrov" class="author-avatar">
+                    <div class="author-info">
+                        <h4>Prof. Elena Petrov</h4>
+                        <p>Environmental Research</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq" id="faq">
+        <h2 class="section-title">Frequently Asked Questions</h2>
+        
+        <div class="container">
+            <div class="accordion" id="faqAccordion">
+                <div class="accordion-item">
+                    <h3 class="accordion-header" id="headingOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                            What types of imagery do you accept?
+                        </button>
+                    </h3>
+                    <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            We accept satellite imagery (Sentinel-2, Landsat, PlanetScope), drone-captured multispectral images, and high-resolution RGB aerial photography. For best results, use images with at least 10m/pixel resolution for satellite and 5cm/pixel for drone imagery.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <h3 class="accordion-header" id="headingTwo">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                            How accurate is your health assessment?
+                        </button>
+                    </h3>
+                    <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Our AI models achieve 92-96% accuracy in disease detection when using quality input imagery. Health scores are calibrated against ground-truth data from over 50,000 sampled trees worldwide. Accuracy may vary slightly based on image quality and tree species.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <h3 class="accordion-header" id="headingThree">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                            Can I monitor changes over time?
+                        </button>
+                    </h3>
+                    <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Yes! Our premium plans include historical tracking and change detection. You can upload time-series imagery or connect directly to satellite feeds for automatic monthly updates. Our dashboard visualizes health trends at individual tree or canopy level.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <h3 class="accordion-header" id="headingFour">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour">
+                            What tree species do you support?
+                        </button>
+                    </h3>
+                    <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Our system currently recognizes over 300 common tree species with specialized health models for 75 commercial and ecologically important varieties. We're constantly expanding our database - contact us if you work with species not yet in our system.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact" id="contact">
+        <div class="container">
+            <div class="contact-card">
+                <h3>Get In Touch</h3>
+                <form>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" placeholder="Your Name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="email" class="form-control" placeholder="Your Email" required>
+                        </div>
+                    </div>
+                    <input type="text" class="form-control" placeholder="Subject">
+                    <textarea class="form-control" rows="5" placeholder="Your Message" required></textarea>
+                    <button type="submit" class="submit-btn">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">CanopyScan</div>
+            
+            <div class="footer-links">
+                <a href="#">Home</a>
+                <a href="#features">Features</a>
+                <a href="#testimonials">Testimonials</a>
+                <a href="#faq">FAQ</a>
+                <a href="#contact">Contact</a>
+            </div>
+            
+            <div class="social-links">
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+            </div>
+            
+            <div class="copyright">
+                &copy; 2025 CanopyScan Technologies. All rights reserved.
+            </div>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Header scroll behavior
+        let lastScroll = 0;
+        const header = document.getElementById('mainHeader');
+        
+        window.addEventListener('scroll', function() {
+            const currentScroll = window.pageYOffset;
+            
+            if (currentScroll <= 0) {
+                header.classList.remove('hidden');
+                return;
+            }
+            
+            if (currentScroll > lastScroll && !header.classList.contains('hidden')) {
+                header.classList.add('hidden');
+            } else if (currentScroll < lastScroll && header.classList.contains('hidden')) {
+                header.classList.remove('hidden');
+            }
+            
+            lastScroll = currentScroll;
+        });
+
+        // File upload and analysis - MODIFIED VERSION
+    const fileInput = document.getElementById("fileInput");
+    const previewImage = document.getElementById("previewImage");
+    const analyzeBtn = document.getElementById("analyzeBtn");
+    const btnText = document.getElementById("btnText");
+    const formData = new FormData();
+    
+    fileInput.addEventListener("change", function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewImage.style.display = "block";
+                analyzeBtn.disabled = false;
+                
+                // Add loaded class after image is rendered
+                setTimeout(() => {
+                    previewImage.classList.add('loaded');
+                }, 100);
+                
+                // Reset FormData and append new file
+                formData.delete('file');
+                formData.append('file', file);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    // Replace the analyzeBtn click handler with this:
+analyzeBtn.addEventListener("click", async function() {
+    if (!fileInput.files[0]) {
+        alert("Please select an image first");
+        return;
+    }
+
+    // Show loading state
+    btnText.textContent = "Analyzing...";
+    analyzeBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' + btnText.outerHTML;
+    analyzeBtn.disabled = true;
+
+    try {
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        const response = await fetch('/', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            throw new Error(data.error);
+        }
+
+        // Store results in sessionStorage to pass to result page
+        sessionStorage.setItem('analysisResults', JSON.stringify(data));
+        
+        // Redirect to result page
+        window.location.href = '/result';
+
+    } catch (error) {
+        console.error('Error:', error);
+        btnText.textContent = "Try Again";
+        analyzeBtn.disabled = false;
+        analyzeBtn.innerHTML = btnText.outerHTML;
+        alert(`Analysis failed: ${error.message}`);
+    }
+});
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    window.scrollTo({
+                        top: target.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Intersection Observer for scroll animations
+        const animateOnScroll = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = 1;
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.feature-card').forEach(card => {
+            animateOnScroll.observe(card);
+        });
+    </script>
 </body>
-
-
 </html>
